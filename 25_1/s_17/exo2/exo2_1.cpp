@@ -130,15 +130,62 @@ void mergeSort(vector<int> &v, int l, int r, vector<int> &tmp){
 	merge(v, l, m, r, tmp);
 }
 
+void heapify(vector<int> &v, int n, int i){
+	
+	int largest = i;
+	
+	int l = i * 2 + 1;
+	
+	int r = i * 2 + 2;
+	
+	if(l < n && v[l] > v[largest]){
+		largest = l;
+	}
+	
+	if(r < n && v[r] > v[largest]){
+		largest = r;
+	}
+	
+	if(largest != i){
+		swap(v[i], v[largest]);
+		heapify(v, n, largest);
+	}
+}
+
+void heapSort(vector<int> &v){
+	int n = v.size() ;
+	
+	for(int i = n / 2 - 1; i >= 0; i--){
+		heapify(v, n, i);
+	}
+	
+	for(int i = n - 1; i >= 0; i--){
+		swap(v[i], v[0]);
+		heapify(v, i, 0);
+	}
+}
+
 void solve() {
 	int n;
+	int choose;
 	cin >> n;
 	vector<int> v(n);
 	vector<int> tmp(n);
 	for(int i = 0; i < n; i++){
 		cin >> v[i];
 	}
-	mergeSort(v, 0, v.size() - 1, tmp);
+	cin >> choose;
+	switch(choose){
+		case 1:
+			mergeSort(v, 0, v.size() - 1, tmp);		
+			break;
+		case 2:
+			quickSort(v, 0, v.size() - 1);
+			break;
+		case 3:
+			heapSort(v);
+			break;
+	}
 	for(int i : v){
 		cout << i << ' ';
 	}

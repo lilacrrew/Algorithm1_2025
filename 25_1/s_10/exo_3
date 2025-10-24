@@ -1,0 +1,305 @@
+// Problem 1: Fibonacci
+
+using System;
+public class Fibo
+{
+    public static long Matrix(int n)
+    {
+        if (n<=1) return n;        
+        long[,] matrix = {{1, 1}, {1, 0}};
+        long[,] res = MatrixPower(matrix, n-1);
+        return res[0, 0];
+    }
+    
+    private static long[,] MatrixPower(long[,] matrix, int pow)
+    {
+        int size = matrix.GetLength(0);
+        long[,] res = {{1, 0}, {0, 1}};
+        long[,] temp = (long[,])matrix.Clone();
+        
+        while (pow>0)
+        {
+            if (pow%2==1) res = MatrixMultiply(res, temp);
+            temp = MatrixMultiply(temp, temp);
+            pow/=2;
+        }        
+        return res;
+    }
+    
+    private static long[,] MatrixMultiply(long[,] a, long[,] b)
+    {
+        return new long[,] 
+        {
+            {a[0,0]*b[0,0] + a[0,1]*b[1,0], a[0,0]*b[0,1] + a[0,1]*b[1,1]},
+            {a[1,0]*b[0,0] + a[1,1]*b[1,0], a[1,0]*b[0,1] + a[1,1]*b[1,1]}
+        };
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        for (int i=0; i<=10; i++) Console.WriteLine($"F({i}) = {FibonacciSolver.Matrix(i)}");        
+        Console.WriteLine($"\nF(20) = {FibonacciSolver.Matrix(20)}");
+    }
+}
+
+
+/*
+Master Theorem Analysis:
+Recurrence Relation: T(n) = T(n/2)+O(1)
+Applying Master Theorem:
+a = 1 (number of subproblems), b = 2 (division factor)
+f(n) = O(1) (constant time for matrix multiplication)
+
+Case 2: f(n) = Θ(n^(logₐb)) = Θ(n^0) = Θ(1)
+Therefore: T(n) = Θ(n^(logₐb) × log n) = Θ(log n)
+
+Why O(log₂n):
+Each iteration divides the problem size by 2:
+For n=16: 16 → 8 → 4 → 2 → 1 (4 steps = log₂16)
+For n=32: 32 → 16 → 8 → 4 → 2 → 1 (5 steps = log₂32)
+Only log₂n matrix multiplications are needed.
+*/
+
+
+
+
+
+
+// Problem 2: Knapsack Algorithm
+
+/*
+Why not Greedy Algorithm?
+Greedy fails because it doesn't have the optimal substructure property. Choosing the highest value-to-weight ratio first doesn't guarantee global optimum.
+*/
+
+
+using System;
+public class ClassKnapsack
+{
+    public class Item
+    {
+        public int Weight { get; set; }
+        public int Value { get; set; }
+        public string Name { get; set; }
+    }
+    
+    public static int Knapsack(Item[] items, int capacity)
+    {
+        int n = items.Length;
+        int[,] dp = new int[n+1, capacity+1];
+        
+        for (int i=1; i<=n; i++)
+        {
+            for (int w=0; w<=capacity; w++)
+            {
+                if (items[i-1].Weight<=w)
+                {
+                    dp[i, w] = Math.Max(
+                        dp[i-1, w],
+                        dp[i-1, w-items[i-1].Weight] + items[i-1].Value 
+                    );
+                }
+                else dp[i, w] = dp[i-1, w];
+            }
+        }        
+        return dp[n, capacity];
+    }
+    
+    // space complexity - O(W)
+    public static int Knapsack2(Item[] items, int capacity)
+    {
+        int n = items.Length;
+        int[] dp = new int[capacity+1];
+        
+        for (int i = 0; i < n; i++)
+        {
+            for (int w = capacity; w >= items[i].Weight; w--) dp[w] = Math.Max(dp[w], dp[w - items[i].Weight] + items[i].Value);
+        }        
+        return dp[capacity];
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        ClassKnapsack.Item[] items = {
+            new ClassKnapsack.Item { Name = "Item1", Weight = 2, Value = 3 },
+            new ClassKnapsack.Item { Name = "Item2", Weight = 3, Value = 4 },
+            new ClassKnapsack.Item { Name = "Item3", Weight = 4, Value = 5 },
+            new ClassKnapsack.Item { Name = "Item4", Weight = 5, Value = 6 }
+        };
+        
+        int capacity = 5;
+        int maxVal = ClassKnapsack.Knapsack(items, capacity);
+        Console.WriteLine($"Max value with capacity {capacity}: {maxVal}");
+        
+        int maxValOpt = ClassKnapsack.Knapsack2(items, capacity);
+        Console.WriteLine($"Optimized: {maxValOpt}");
+    }
+}
+
+
+
+
+
+
+
+
+// Problem 3 (Neuro Computing!)
+
+using System;
+using System.Linq;
+public class VectorAnalysis
+{
+    private Random rnd = new Random();
+    
+    public int[] MakeVector(int n)
+    {
+        int[] vec = new int[n];
+        for(int i=0;i<n;i++) vec[i] = rnd.Next(2);
+        return vec;
+    }
+    
+    public double Sim1(int[] x,int[] y)
+    {
+        double dot=0,sumX=0,sumY=0;
+        for(int i=0;i<x.Length;i++)
+        {
+            dot+=x[i]*y[i];
+            sumX+=x[i];
+            sumY+=y[i];
+        }
+        if(sumX==0||sumY==0) return 0;
+        return dot/(sumX*sumY);
+    }
+    
+    public double Jaccard(int[] x,int[] y)
+    {
+        double inter=0,uni=0;
+        for(int i=0;i<x.Length;i++)
+        {
+            inter+=x[i]*y[i];
+            uni+=(x[i]==1||y[i]==1)?1:0;
+        }
+        if(uni==0) return 0;
+        return inter/uni;
+    }
+    
+    public int[] MakeSparse(int len,int ones)
+    {
+        int[] vec=new int[len];
+        var indices=Enumerable.Range(0,len).OrderBy(x=>rnd.Next()).Take(ones);
+        foreach(int i in indices) vec[i]=1;
+        return vec;
+    }
+    
+    public long CountVectors(int n,int k)
+    {
+        if(k>n) return 0;
+        if(k==0||k==n) return 1;
+        long res=1;
+        for(int i=1;i<=k;i++) res = res*(n-i+1)/i;
+        return res;
+    }
+    
+    public void Analyze(int vecLen,int sampleSize)
+    {
+        Console.WriteLine($"Testing {sampleSize} vectors of length {vecLen}");
+        
+        int totalPairs=sampleSize*(sampleSize-1)/2;
+        double[] sim1Results = new double[totalPairs];
+        double[] jaccardResults = new double[totalPairs];
+        
+        int[][] vectors=new int[sampleSize][];
+        for(int i=0;i<sampleSize;i++) vectors[i] = MakeVector(vecLen);
+        
+        int idx=0;
+        for(int i=0;i<sampleSize;i++)
+        {
+            for(int j=i+1;j<sampleSize;j++)
+            {
+                sim1Results[idx] = Sim1(vectors[i],vectors[j]);
+                jaccardResults[idx] = Jaccard(vectors[i],vectors[j]);
+                idx++;
+            }
+        }
+        
+        Console.WriteLine($"Sim1 - Avg: {sim1Results.Average():F4}, Dev: {Std(sim1Results):F4}");
+        Console.WriteLine($"Jaccard - Avg: {jaccardResults.Average():F4}, Dev: {Std(jaccardResults):F4}");
+    }
+    
+    private double Std(double[] vals)
+    {
+        double avg=vals.Average();
+        double sumSq=vals.Sum(x=>(x-avg)*(x-avg));
+        return Math.Sqrt(sumSq/vals.Length);
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        VectorAnalysis va=new VectorAnalysis();
+        
+        Console.WriteLine(" Similarity Tests");
+        va.Analyze(10,100);
+        va.Analyze(50,100);
+        va.Analyze(100,100);
+        
+        Console.WriteLine("\n Sparse Vectors");
+        int N=2000, w=5;
+        long count=va.CountVectors(N,w);
+        Console.WriteLine($"Vectors with {N} length and {w} ones: {count}");
+        Console.WriteLine($"About {count/1e9:F2} billion");
+        
+        Console.WriteLine("\n Capacity ");
+        Console.WriteLine("How many patterns fit before they mix together");
+        
+        for(int ones=1; ones<=10; ones++)
+        {
+            long c=va.CountVectors(100, ones);
+            Console.WriteLine($"Length 100, {ones} ones: {c} patterns");
+        }
+    }
+}
+
+/*
+When we create random sequences of 0s and 1s and measure their similarity, longer sequences behave more predictably. 
+With short sequences similarity scores vary widely, but as length increases, scores cluster tightly around the average. 
+This hapens for the same reason that flipping a coin 1000 times gives nearly 50% heads while flipping it just 10 times 
+can give more variable results - more data points create more consistent averages.
+
+
+
+
+4. Sparse Vectors Count
+For N=2000, w=5:
+We have vectors of length 2000 with exactly 5 ones
+Number of possible combinations = C(2000,5)
+Result: 2658333333300 possible vectors
+That's about 2.66 trillion different possible patterns. Even with only 5 ones in 2000 positions, we have enormous variety.
+
+
+
+
+5. Capacity Concept
+For our vectors:
+When we have too many patterns, they become too similar we can't tell them apart anymore
+The "sweet spot" is where patterns are different enough to distinguish
+
+Sparse vectors (few ones, many zeros) have HIGH capacity because:
+They're very different from each other
+Low chance of accidental overlap
+Can store many patterns before confusion happens
+
+Practical capacity formula: For sparse vectors: Capacity ≈ (N × logN) / w
+N = vector length
+w = number of ones
+This gives us the maximum number of reliably storable patterns
+*/
+
